@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeonMail Direct (Hostinger SMTP)</title>
+    <title>NeonMail Direct (Hostinger)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
@@ -15,7 +15,7 @@
         body { background-color: #050505; color: #e5e7eb; font-family: 'Inter', sans-serif; background-image: radial-gradient(circle at top right, #1a2e1a 0%, #000 40%); }
         .glass-panel { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; }
         .input-dark { background: rgba(0, 0, 0, 0.5); border: 1px solid #333; color: #fff; transition: all 0.3s; }
-        .input-dark:focus { border-color: #ff003c; outline: none; } /* Vermelho agressivo para indicar modo inseguro/direto */
+        .input-dark:focus { border-color: #ff003c; outline: none; }
         .btn-neon { background: #ff003c; color: #fff; font-weight: 800; text-transform: uppercase; transition: all 0.3s; }
         .btn-neon:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(255, 0, 60, 0.5); }
         .btn-neon:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -29,15 +29,15 @@
 
     <div class="max-w-6xl mx-auto flex justify-between items-center mb-8">
         <div>
-            <h1 class="text-3xl font-bold tracking-tighter text-white">NEON<span class="text-[#ff003c]">MAIL</span> <span class="text-xs bg-red-900 text-white px-2 py-1 rounded">DIRECT SMTP</span></h1>
+            <h1 class="text-3xl font-bold tracking-tighter text-white">NEON<span class="text-[#ff003c]">MAIL</span> <span class="text-xs bg-red-900 text-white px-2 py-1 rounded">HOSTINGER SMTP</span></h1>
         </div>
         <div class="flex items-center gap-2 text-[#ff003c]">
-            <span class="w-2 h-2 bg-[#ff003c] rounded-full animate-pulse"></span> MODO DIRETO
+            <span class="w-2 h-2 bg-[#ff003c] rounded-full animate-pulse"></span> CONEXÃO DIRETA
         </div>
     </div>
 
     <div class="max-w-6xl mx-auto mb-6 bg-red-900/20 border border-red-600 text-red-200 p-4 rounded text-xs font-mono">
-        <i class="fas fa-unlock"></i> AVISO: As credenciais SMTP estão hardcoded neste arquivo. Qualquer pessoa que inspecionar o código poderá vê-las.
+        <i class="fas fa-unlock"></i> AVISO: Sua senha da Hostinger está visível no código-fonte deste arquivo (Linha 140).
     </div>
 
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -91,7 +91,7 @@
                 
                 <div class="mt-6 flex gap-3">
                     <button type="button" onclick="startSending()" id="btnAction" class="btn-neon flex-1 py-4 rounded-lg text-lg shadow-lg flex justify-center items-center gap-2">
-                        <i class="fas fa-paper-plane"></i> DISPARAR COM HOSTINGER
+                        <i class="fas fa-paper-plane"></i> DISPARAR
                     </button>
                     <button type="button" onclick="stopSystem()" id="btnStop" class="hidden flex-1 py-4 rounded-lg text-lg bg-gray-600 text-white font-bold hover:bg-gray-700">
                         <i class="fas fa-stop"></i> PARAR
@@ -100,20 +100,18 @@
             </div>
 
             <div class="glass-panel p-4 h-64 flex flex-col">
-                <div class="flex justify-between items-center mb-2"><span class="text-xs font-mono text-gray-500">LOGS SMTP</span> <button onclick="document.getElementById('logContainer').innerHTML = ''" class="text-xs text-gray-600">Limpar</button></div>
+                <div class="flex justify-between items-center mb-2"><span class="text-xs font-mono text-gray-500">LOGS DO DISPARO</span> <button onclick="document.getElementById('logContainer').innerHTML = ''" class="text-xs text-gray-600">Limpar</button></div>
                 <div id="logContainer" class="flex-1 overflow-y-auto font-mono text-xs space-y-1 p-2 bg-black/50 rounded border border-gray-800"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CREDENCIAIS HOSTINGER (INSERIDAS) ---
-        const SMTP_CONFIG = {
-            Host: "smtp.hostinger.com",
-            Username: "contato@cristianefranklin.com",
-            Password: "@Sobre8877", 
-            From: "contato@cristianefranklin.com" // Hostinger exige que o From seja igual ao usuário autenticado
-        };
+        // CONFIGURAÇÃO SMTP (HOSTINGER)
+        // Isso aqui conecta direto usando sua senha.
+        const SMTP_HOST = "smtp.hostinger.com";
+        const SMTP_USER = "contato@cristianefranklin.com";
+        const SMTP_PASS = "@Sobre8877";
 
         const delayRange = document.getElementById('delayRange');
         const delayVal = document.getElementById('delayVal');
@@ -165,7 +163,7 @@
                     
                     if(queue.length === 0) {
                         document.getElementById('btnAction').disabled = false;
-                        document.getElementById('btnAction').innerHTML = 'DISPARAR COM HOSTINGER';
+                        document.getElementById('btnAction').innerHTML = 'DISPARAR';
                         return alert("Nenhum e-mail válido encontrado no CSV.");
                     }
 
@@ -177,7 +175,7 @@
 
                     document.getElementById('btnAction').classList.add('hidden');
                     document.getElementById('btnStop').classList.remove('hidden');
-                    addLog(`Iniciando envio para ${queue.length} contatos usando SMTP.js...`, 'info');
+                    addLog(`Iniciando envio para ${queue.length} contatos usando Hostinger SMTP...`, 'info');
                     
                     isRunning = true;
                     processNext();
@@ -210,13 +208,13 @@
             
             let finalSubject = rawSubject.replace(/{Nome}/g, lead.nome);
 
-            // ENVIO VIA SMTP.JS
+            // ENVIO VIA SMTP.JS (Usando credenciais diretas)
             Email.send({
-                Host : SMTP_CONFIG.Host,
-                Username : SMTP_CONFIG.Username,
-                Password : SMTP_CONFIG.Password,
+                Host : SMTP_HOST,
+                Username : SMTP_USER,
+                Password : SMTP_PASS,
                 To : lead.email,
-                From : SMTP_CONFIG.From,
+                From : SMTP_USER, // Hostinger obriga que o remetente seja o dono da conta
                 Subject : finalSubject,
                 Body : finalBody
             }).then(
@@ -228,6 +226,7 @@
                 } else {
                     totalError++;
                     document.getElementById('stat-error').innerText = totalError;
+                    // SMTP.js retorna erros detalhados aqui
                     addLog(`FALHA: ${lead.email} - ${message}`, 'error');
                 }
                 
@@ -236,7 +235,7 @@
             ).catch(err => {
                 totalError++;
                 document.getElementById('stat-error').innerText = totalError;
-                addLog(`ERRO CRÍTICO: ${lead.email} - ${err}`, 'error');
+                addLog(`ERRO: ${lead.email} - ${err}`, 'error');
                 nextStep();
             });
         }
