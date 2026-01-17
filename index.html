@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeonMail Direct (Hostinger)</title>
+    <title>NeonMail Direct V2 (Hostinger)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
@@ -29,15 +29,11 @@
 
     <div class="max-w-6xl mx-auto flex justify-between items-center mb-8">
         <div>
-            <h1 class="text-3xl font-bold tracking-tighter text-white">NEON<span class="text-[#ff003c]">MAIL</span> <span class="text-xs bg-red-900 text-white px-2 py-1 rounded">HOSTINGER SMTP</span></h1>
+            <h1 class="text-3xl font-bold tracking-tighter text-white">NEON<span class="text-[#ff003c]">MAIL</span> <span class="text-xs bg-red-900 text-white px-2 py-1 rounded">HOSTINGER DIRECT</span></h1>
         </div>
         <div class="flex items-center gap-2 text-[#ff003c]">
-            <span class="w-2 h-2 bg-[#ff003c] rounded-full animate-pulse"></span> CONEXÃO DIRETA
+            <span class="w-2 h-2 bg-[#ff003c] rounded-full animate-pulse"></span> ONLINE
         </div>
-    </div>
-
-    <div class="max-w-6xl mx-auto mb-6 bg-red-900/20 border border-red-600 text-red-200 p-4 rounded text-xs font-mono">
-        <i class="fas fa-unlock"></i> AVISO: Sua senha da Hostinger está visível no código-fonte deste arquivo (Linha 140).
     </div>
 
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -58,13 +54,13 @@
                         <label class="text-xs text-gray-400 uppercase font-bold flex justify-between">
                             Delay (Segundos): <span id="delayVal" class="text-[#ff003c]">3s</span>
                         </label>
-                        <input type="range" id="delayRange" min="1" max="10" value="3" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#ff003c]">
+                        <input type="range" id="delayRange" min="2" max="10" value="3" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#ff003c]">
                     </div>
                 </form>
             </div>
 
             <div class="glass-panel p-6">
-                <h2 class="text-lg font-bold mb-4"><i class="fas fa-chart-pie text-gray-400"></i> Progresso</h2>
+                <h2 class="text-lg font-bold mb-4"><i class="fas fa-chart-pie text-gray-400"></i> Status</h2>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div class="bg-black/30 p-2 rounded text-center"><div class="text-[10px] text-gray-500">TOTAL</div><div id="stat-total" class="text-lg font-bold text-white">0</div></div>
                     <div class="bg-black/30 p-2 rounded text-center"><div class="text-[10px] text-gray-500">PENDENTE</div><div id="stat-pending" class="text-lg font-bold text-yellow-500">0</div></div>
@@ -72,7 +68,7 @@
                     <div class="bg-black/30 p-2 rounded text-center"><div class="text-[10px] text-gray-500">ERROS</div><div id="stat-error" class="text-lg font-bold text-red-500">0</div></div>
                 </div>
                 <div class="w-full bg-gray-800 rounded-full h-2 mb-2"><div id="progressBar" class="bg-[#ff003c] h-2 rounded-full transition-all" style="width: 0%"></div></div>
-                <div class="text-center text-xs text-gray-400" id="progressText">0%</div>
+                <div class="text-center text-xs text-gray-400" id="progressText">AGUARDANDO...</div>
             </div>
         </div>
 
@@ -100,15 +96,15 @@
             </div>
 
             <div class="glass-panel p-4 h-64 flex flex-col">
-                <div class="flex justify-between items-center mb-2"><span class="text-xs font-mono text-gray-500">LOGS DO DISPARO</span> <button onclick="document.getElementById('logContainer').innerHTML = ''" class="text-xs text-gray-600">Limpar</button></div>
+                <div class="flex justify-between items-center mb-2"><span class="text-xs font-mono text-gray-500">LOGS DO SISTEMA</span> <button onclick="document.getElementById('logContainer').innerHTML = ''" class="text-xs text-gray-600">Limpar</button></div>
                 <div id="logContainer" class="flex-1 overflow-y-auto font-mono text-xs space-y-1 p-2 bg-black/50 rounded border border-gray-800"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO SMTP (HOSTINGER)
-        // Isso aqui conecta direto usando sua senha.
+        // --- CONFIGURAÇÃO HOSTINGER ---
+        // A senha está exposta aqui conforme sua solicitação
         const SMTP_HOST = "smtp.hostinger.com";
         const SMTP_USER = "contato@cristianefranklin.com";
         const SMTP_PASS = "@Sobre8877";
@@ -145,8 +141,13 @@
             if (fileInput.files.length === 0) return alert("Selecione um arquivo CSV!");
             if (!subject || !body) return alert("Preencha o Assunto e a Mensagem!");
 
+            // Verifica se a biblioteca carregou
+            if (typeof Email === 'undefined') {
+                return alert("ERRO CRÍTICO: A biblioteca SMTP.js não carregou. Verifique sua internet ou bloqueadores de anúncio.");
+            }
+
             document.getElementById('btnAction').disabled = true;
-            document.getElementById('btnAction').innerHTML = '<i class="fas fa-spinner fa-spin"></i> LENDO CSV...';
+            document.getElementById('btnAction').innerHTML = '<i class="fas fa-spinner fa-spin"></i> LENDO...';
 
             Papa.parse(fileInput.files[0], {
                 header: false,
@@ -154,7 +155,7 @@
                 complete: function(results) {
                     let data = results.data;
                     
-                    // Remove cabeçalho se existir
+                    // Lógica para remover cabeçalho se houver
                     if(data[0][1] && (data[0][1].toLowerCase().includes('email') || !data[0][1].includes('@'))) {
                         data.shift();
                     }
@@ -164,7 +165,7 @@
                     if(queue.length === 0) {
                         document.getElementById('btnAction').disabled = false;
                         document.getElementById('btnAction').innerHTML = 'DISPARAR';
-                        return alert("Nenhum e-mail válido encontrado no CSV.");
+                        return alert("Nenhum e-mail válido encontrado.");
                     }
 
                     document.getElementById('stat-total').innerText = queue.length;
@@ -175,7 +176,7 @@
 
                     document.getElementById('btnAction').classList.add('hidden');
                     document.getElementById('btnStop').classList.remove('hidden');
-                    addLog(`Iniciando envio para ${queue.length} contatos usando Hostinger SMTP...`, 'info');
+                    addLog(`Iniciando envio para ${queue.length} contatos...`, 'info');
                     
                     isRunning = true;
                     processNext();
@@ -183,7 +184,7 @@
             });
         }
 
-        function processNext() {
+        async function processNext() {
             if (!isRunning || currentIndex >= queue.length) {
                 finishJob();
                 return;
@@ -200,7 +201,6 @@
             const rawBody = document.getElementById('msgBody').value;
             const rawSubject = document.getElementById('subject').value;
 
-            // Variáveis
             let finalBody = rawBody
                 .replace(/{Nome}/g, lead.nome)
                 .replace(/{Email}/g, lead.email)
@@ -208,36 +208,47 @@
             
             let finalSubject = rawSubject.replace(/{Nome}/g, lead.nome);
 
-            // ENVIO VIA SMTP.JS (Usando credenciais diretas)
-            Email.send({
+            addLog(`Tentando enviar para: ${lead.email}...`, 'info');
+
+            // --- ENVIO COM TIMEOUT MANUAL ---
+            // Se o SMTP.js travar, o Promise.race vai desbloquear depois de 15s
+            const sendPromise = Email.send({
                 Host : SMTP_HOST,
                 Username : SMTP_USER,
                 Password : SMTP_PASS,
                 To : lead.email,
-                From : SMTP_USER, // Hostinger obriga que o remetente seja o dono da conta
+                From : SMTP_USER,
                 Subject : finalSubject,
                 Body : finalBody
-            }).then(
-              message => {
+            });
+
+            const timeoutPromise = new Promise((resolve) => {
+                setTimeout(() => { resolve("TIMEOUT"); }, 15000); // 15 segundos maximo
+            });
+
+            try {
+                const message = await Promise.race([sendPromise, timeoutPromise]);
+
                 if (message === "OK") {
                     totalSent++;
                     document.getElementById('stat-sent').innerText = totalSent;
-                    addLog(`ENVIADO: ${lead.email}`, 'success');
+                    addLog(`SUCESSO: ${lead.email}`, 'success');
+                } else if (message === "TIMEOUT") {
+                    totalError++;
+                    document.getElementById('stat-error').innerText = totalError;
+                    addLog(`TIMEOUT: O servidor demorou muito para responder em ${lead.email}.`, 'error');
                 } else {
                     totalError++;
                     document.getElementById('stat-error').innerText = totalError;
-                    // SMTP.js retorna erros detalhados aqui
-                    addLog(`FALHA: ${lead.email} - ${message}`, 'error');
+                    addLog(`ERRO SMTP: ${lead.email} - ${message}`, 'error');
                 }
-                
-                nextStep();
-              }
-            ).catch(err => {
+            } catch (err) {
                 totalError++;
                 document.getElementById('stat-error').innerText = totalError;
-                addLog(`ERRO: ${lead.email} - ${err}`, 'error');
-                nextStep();
-            });
+                addLog(`ERRO CRÍTICO: ${lead.email} - ${err}`, 'error');
+            }
+
+            nextStep();
         }
 
         function nextStep() {
