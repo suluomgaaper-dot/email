@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeonMail Turbo (GitHub Version)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        body { background-color: #050505; color: #e5e7eb; font-family: 'Inter', sans-serif; background-image: radial-gradient(circle at top right, #1a2e1a 0%, #000 40%); }
+        .glass-panel { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; }
+        .input-dark { background: rgba(0, 0, 0, 0.5); border: 1px solid #333; color: #fff; transition: all 0.3s; }
+        .input-dark:focus { border-color: #39ff14; outline: none; }
+        .btn-neon { background: #39ff14; color: #000; font-weight: 800; text-transform: uppercase; transition: all 0.3s; }
+        .btn-neon:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(57, 255, 20, 0.5); }
+        .btn-neon:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
+        .tag-var { background: #1f2937; border: 1px solid #374151; color: #39ff14; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+        .tag-var:hover { background: #39ff14; color: #000; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    </style>
+
+    <script type="text/javascript">
+        // --- CONFIGURAÇÃO DO EMAILJS (PREENCHA AQUI) ---
+        // Pegue esses dados no painel do EmailJS (Passo 1 das instruções)
+        const EMAILJS_PUBLIC_KEY = "SUA_PUBLIC_KEY_AQUI"; 
+        const EMAILJS_SERVICE_ID = "SEU_SERVICE_ID_AQUI"; 
+        const EMAILJS_TEMPLATE_ID = "SEU_TEMPLATE_ID_AQUI";
+
+        (function() {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+        })();
+    </script>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tighter text-white">NEON<span class="text-[#39ff14]">MAIL</span> <span class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-400">GITHUB EDITION</span></h1>
+        </div>
+        <div class="flex items-center gap-2 text-[#39ff14]">
+            <span class="w-2 h-2 bg-[#39ff14] rounded-full animate-pulse"></span> ONLINE
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1 space-y-6">
+            <div class="glass-panel p-6">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fas fa-cog text-gray-400"></i> Configuração</h2>
+                <form id="campaignForm" class="space-y-4">
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase font-bold">Nome do Remetente</label>
+                        <input type="text" id="sender_name" value="Cristiane Franklin" class="input-dark w-full p-3 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase font-bold">Lista CSV (Nome, Email, CPF...)</label>
+                        <input type="file" id="csvFile" accept=".csv" required class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#39ff14] file:text-black hover:file:bg-green-400 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase font-bold flex justify-between">
+                            Delay (Segundos): <span id="delayVal" class="text-[#39ff14]">2s</span>
+                        </label>
+                        <input type="range" id="delayRange" min="1" max="10" value="2" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#39ff14]">
+                    </div>
+                </form>
+            </div>
+
+            <div class="glass-panel p-6">
+                <h2 class="text-lg font-bold mb-4"><i class="fas fa-chart-pie text-gray-400"></i> Progresso</h2>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-black/30 p-2 rounded text-center"><div class="text-[10px] text-gray-500">TOTAL</div><div id="stat-total" class="text-lg font-bold text-white">0</div></div>
+                    <div class="bg-black/30 p-2 rounded text-center"><div class="text-[10px] text-gray-500">PENDENTE</div><div id="stat-pending" class="text-lg font-bold text-yellow-500">0</div></div>
+                    <div class="bg-black/30 p-2 rounded text-center"><div class="text-[10px] text-gray-500">ENVIADOS</div><div id="stat-sent" class="text-lg font-bold text-[#39ff14]">0</div></div>
+                    <div class="bg-black/30 p-2 rounded text-center"><div class="text-[10px] text-gray-500">ERROS</div><div id="stat-error" class="text-lg font-bold text-red-500">0</div></div>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2 mb-2"><div id="progressBar" class="bg-[#39ff14] h-2 rounded-full transition-all" style="width: 0%"></div></div>
+                <div class="text-center text-xs text-gray-400" id="progressText">0%</div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="glass-panel p-6 border-t-2 border-[#39ff14]">
+                <h2 class="text-lg font-bold mb-4"><i class="fas fa-pen-nib text-gray-400"></i> Editor</h2>
+                <input type="text" id="subject" class="input-dark w-full p-3 rounded-lg text-lg font-bold mb-4" placeholder="Assunto do E-mail..." required>
+                
+                <div class="flex gap-2 mb-2">
+                    <button type="button" class="tag-var" onclick="insertVar('{Nome}')">{Nome}</button>
+                    <button type="button" class="tag-var" onclick="insertVar('{Email}')">{Email}</button>
+                    <button type="button" class="tag-var" onclick="insertVar('{CPF}')">{CPF}</button>
+                    <button type="button" class="tag-var" onclick="insertVar('{Telefone}')">{Telefone}</button>
+                </div>
+                
+                <textarea id="msgBody" rows="8" class="input-dark w-full p-3 rounded-lg font-mono text-sm" placeholder="Sua mensagem HTML... use <br> para pular linha." required></textarea>
+                
+                <div class="mt-6 flex gap-3">
+                    <button type="button" onclick="startSending()" id="btnAction" class="btn-neon flex-1 py-4 rounded-lg text-lg shadow-lg flex justify-center items-center gap-2">
+                        <i class="fas fa-rocket"></i> INICIAR DISPARO
+                    </button>
+                    <button type="button" onclick="stopSystem()" id="btnStop" class="hidden flex-1 py-4 rounded-lg text-lg bg-red-600 text-white font-bold hover:bg-red-700">
+                        <i class="fas fa-stop"></i> PARAR
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-panel p-4 h-64 flex flex-col">
+                <div class="flex justify-between items-center mb-2"><span class="text-xs font-mono text-gray-500">LOGS DO SISTEMA</span> <button onclick="document.getElementById('logContainer').innerHTML = ''" class="text-xs text-gray-600">Limpar</button></div>
+                <div id="logContainer" class="flex-1 overflow-y-auto font-mono text-xs space-y-1 p-2 bg-black/50 rounded border border-gray-800"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elementos Globais
+        const delayRange = document.getElementById('delayRange');
+        const delayVal = document.getElementById('delayVal');
+        
+        delayRange.addEventListener('input', function() { delayVal.innerText = this.value + 's'; });
+
+        function insertVar(text) { 
+            let el = document.getElementById('msgBody');
+            let start = el.selectionStart;
+            el.value = el.value.substring(0, start) + text + el.value.substring(el.selectionEnd);
+            el.focus();
+            el.selectionEnd = start + text.length; 
+        }
+
+        let isRunning = false;
+        let queue = [];
+        let totalSent = 0;
+        let totalError = 0;
+        let currentIndex = 0;
+
+        function addLog(msg, type='info') {
+            let color = type === 'success' ? 'text-[#39ff14]' : (type === 'error' ? 'text-red-500' : 'text-gray-400');
+            const logBox = document.getElementById('logContainer');
+            logBox.innerHTML = `<div class="${color} border-b border-white/5 pb-1">[${new Date().toLocaleTimeString()}] ${msg}</div>` + logBox.innerHTML;
+        }
+
+        function startSending() {
+            const fileInput = document.getElementById('csvFile');
+            const subject = document.getElementById('subject').value;
+            const body = document.getElementById('msgBody').value;
+            const senderName = document.getElementById('sender_name').value;
+
+            if (fileInput.files.length === 0) return alert("Selecione um arquivo CSV!");
+            if (!subject || !body) return alert("Preencha o Assunto e a Mensagem!");
+            
+            // Verifica se configurou o EmailJS
+            if(EMAILJS_PUBLIC_KEY === "SUA_PUBLIC_KEY_AQUI") return alert("ERRO: Você precisa abrir o código HTML e colocar suas chaves do EmailJS nas linhas 21, 22 e 23!");
+
+            document.getElementById('btnAction').disabled = true;
+            document.getElementById('btnAction').innerHTML = '<i class="fas fa-spinner fa-spin"></i> LENDO CSV...';
+
+            Papa.parse(fileInput.files[0], {
+                header: false, // Assumindo que não tem cabeçalho ou ignorando
+                skipEmptyLines: true,
+                complete: function(results) {
+                    // Ignora a primeira linha se for cabeçalho (opcional, aqui estamos processando tudo a partir da linha 1 se o usuario quiser)
+                    // Vamos assumir formato: Col 0: Nome, Col 1: Email, Col 2: CPF, Col 3: Telefone
+                    let data = results.data;
+                    
+                    // Se a primeira linha tiver "email" ou "nome", removemos
+                    if(data[0][1] && (data[0][1].toLowerCase().includes('email') || data[0][1].toLowerCase().includes('@') === false)) {
+                        data.shift();
+                    }
+
+                    queue = data.filter(row => row[1] && row[1].includes('@')); // Filtra linhas com email válido
+                    
+                    if(queue.length === 0) {
+                        document.getElementById('btnAction').disabled = false;
+                        document.getElementById('btnAction').innerHTML = 'INICIAR DISPARO';
+                        return alert("Nenhum e-mail válido encontrado no CSV.");
+                    }
+
+                    // Reset Stats
+                    document.getElementById('stat-total').innerText = queue.length;
+                    document.getElementById('stat-pending').innerText = queue.length;
+                    document.getElementById('stat-sent').innerText = "0";
+                    document.getElementById('stat-error').innerText = "0";
+                    totalSent = 0; totalError = 0; currentIndex = 0;
+
+                    // UI Changes
+                    document.getElementById('btnAction').classList.add('hidden');
+                    document.getElementById('btnStop').classList.remove('hidden');
+                    addLog(`Iniciando envio para ${queue.length} contatos via EmailJS...`, 'info');
+                    
+                    isRunning = true;
+                    processNext();
+                }
+            });
+        }
+
+        async function processNext() {
+            if (!isRunning || currentIndex >= queue.length) {
+                finishJob();
+                return;
+            }
+
+            const row = queue[currentIndex];
+            const lead = {
+                nome: row[0] || '',
+                email: row[1].trim(),
+                cpf: row[2] || '',
+                telefone: row[3] || ''
+            };
+
+            const rawBody = document.getElementById('msgBody').value;
+            const rawSubject = document.getElementById('subject').value;
+            const senderName = document.getElementById('sender_name').value;
+
+            // Substituição de Variáveis
+            let finalBody = rawBody
+                .replace(/{Nome}/g, lead.nome)
+                .replace(/{Email}/g, lead.email)
+                .replace(/{CPF}/g, lead.cpf)
+                .replace(/{Telefone}/g, lead.telefone);
+            
+            let finalSubject = rawSubject
+                .replace(/{Nome}/g, lead.nome);
+
+            // Parâmetros para o EmailJS
+            // O Template no EmailJS deve esperar {{subject}}, {{message}}, {{to_email}}, {{from_name}}
+            const templateParams = {
+                to_email: lead.email,
+                from_name: senderName,
+                subject: finalSubject,
+                message: finalBody,
+                reply_to: "contato@cristianefranklin.com" // Seu email oficial
+            };
+
+            try {
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+                
+                totalSent++;
+                document.getElementById('stat-sent').innerText = totalSent;
+                addLog(`ENVIADO: ${lead.email}`, 'success');
+
+            } catch (error) {
+                totalError++;
+                document.getElementById('stat-error').innerText = totalError;
+                console.error(error);
+                addLog(`ERRO: ${lead.email} - ${JSON.stringify(error)}`, 'error');
+            }
+
+            // Atualiza Pendentes e Barra
+            currentIndex++;
+            document.getElementById('stat-pending').innerText = queue.length - currentIndex;
+            let pct = Math.round((currentIndex / queue.length) * 100);
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('progressText').innerText = pct + '%';
+
+            // Delay
+            const delay = parseInt(document.getElementById('delayRange').value) * 1000;
+            if (isRunning) setTimeout(processNext, delay);
+        }
+
+        function stopSystem() {
+            isRunning = false;
+            addLog('Processo pausado pelo usuário.', 'info');
+            document.getElementById('btnStop').classList.add('hidden');
+            document.getElementById('btnAction').classList.remove('hidden');
+            document.getElementById('btnAction').disabled = false;
+            document.getElementById('btnAction').innerHTML = 'CONTINUAR / REINICIAR';
+        }
+
+        function finishJob() {
+            isRunning = false;
+            addLog('LISTA FINALIZADA!', 'success');
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('progressBar').classList.add('bg-green-500');
+            document.getElementById('btnStop').classList.add('hidden');
+            document.getElementById('btnAction').classList.remove('hidden');
+            document.getElementById('btnAction').disabled = false;
+            document.getElementById('btnAction').innerHTML = 'NOVO DISPARO';
+            alert('Envio finalizado!');
+        }
+    </script>
+</body>
+</html>
